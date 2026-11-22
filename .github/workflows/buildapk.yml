@@ -22,9 +22,14 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.11.1'
+
       - name: Build debug APK
         run: |
-          # پیدا کردن پوشه‌ای که فایل build.gradle یا تنظیمات اندروید در آن است
+          echo "Locating build.gradle inside extracted_files..."
           PROJECT_DIR=$(find extracted_files -name "build.gradle" -o -name "build.gradle.kts" -type f -exec dirname {} \; | head -n 1)
           
           if [ -z "$PROJECT_DIR" ]; then
@@ -35,18 +40,18 @@ jobs:
           echo "Found project root at: $PROJECT_DIR"
           cd "$PROJECT_DIR"
           
-          # تولید خودکار gradlew در صورتی که وجود نداشته باشد
-          echo "Generating Gradle Wrapper..."
-          gradle wrapper --gradle-version 8.11.1
+          # اگر gradlew وجود نداشت، آن را به صورت خودکار بساز
+          if [ ! -f "./gradlew" ]; then
+            echo "Gradle wrapper not found. Generating it..."
+            gradle wrapper --gradle-version 8.11.1
+          fi
           
-          # اعطای دسترسی اجرایی و ساخت APK
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
-
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: TimeLine-debug-apk
-          path: extracted_files/app/build/outputs/apk/debug/app-debug.apk
+          path: extracted_files/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error

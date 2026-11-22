@@ -6,18 +6,20 @@ on:
     branches:
       - main
     paths:
-      - '**.zip' # هر زمان فایل زیپ جدیدی پوش شد اجرا شود
+      - '**.zip'
+
+permissions:
+  contents: write # ضروری برای اجازه دادن به گیت‌هاب جهت ذخیره تغییرات (Commit)
 
 jobs:
   unzip:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Extract ZIP files
         run: |
-          # پیدا کردن و استخراج تمام فایل‌های زیپ موجود در پوشه اصلی
           for f in *.zip; do
             if [ -f "$f" ]; then
               echo "Extracting $f..."
@@ -26,7 +28,7 @@ jobs:
           done
 
       - name: Commit extracted files back to repository
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Auto-unzip uploaded archive"
           branch: main

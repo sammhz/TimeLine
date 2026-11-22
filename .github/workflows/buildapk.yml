@@ -23,10 +23,26 @@ jobs:
         uses: android-actions/setup-android@v4
 
       - name: Build debug APK
-        working-directory: extracted_files
         run: |
+          # پیدا کردن پوشه‌ای که فایل build.gradle یا تنظیمات اندروید در آن است
+          PROJECT_DIR=$(find extracted_files -name "build.gradle" -o -name "build.gradle.kts" -type f -exec dirname {} \; | head -n 1)
+          
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "Error: Could not find any build.gradle file in extracted_files!"
+            exit 1
+          fi
+          
+          echo "Found project root at: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          
+          # تولید خودکار gradlew در صورتی که وجود نداشته باشد
+          echo "Generating Gradle Wrapper..."
+          gradle wrapper --gradle-version 8.11.1
+          
+          # اعطای دسترسی اجرایی و ساخت APK
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
+
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
